@@ -35,6 +35,10 @@ dependencies:
     git:
       url: https://github.com/shrinex/shrinex-core.git
       ref: main
+#  shrinex_io:
+#    path: ../shrinex-io
+#  shrinex_core:
+#    path: ../shrinex-core
 
 dev_dependencies:
   flutter_test:

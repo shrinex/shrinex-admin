@@ -436,24 +436,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.1"
-  shrinex_core:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: main
-      resolved-ref: c5d0f4c24e0d75ac614c1eb6e81c7ac114b200c8
-      url: "https://github.com/shrinex/shrinex-core.git"
-    source: git
-    version: "0.0.1+2"
-  shrinex_io:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: main
-      resolved-ref: bfc2b9cbddc279ec7ae0fc06f3b3acb6b86b3b1d
-      url: "https://github.com/shrinex/shrinex-io.git"
-    source: git
-    version: "0.0.1+1"
   sky_engine:
     dependency: transitive
     description: flutter

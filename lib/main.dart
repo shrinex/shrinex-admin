@@ -7,25 +7,38 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shrinex_admin/basics/app_environment.dart';
+import 'package:shrinex_admin/basics/deployment.dart';
 import 'package:shrinex_admin/routes/routes.dart';
 import 'package:shrinex_core/shrinex_core.dart';
 
 void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
-  var store = KeyValueStore.using(
-    await SharedPreferences.getInstance(),
+  final prefs = await SharedPreferences.getInstance();
+  final env = AppEnvironment.fromStorage(
+    apiService: Deployment.local,
+    userDefaults: prefs.asKeyValueStore(),
   );
-  runApp(const ShrinexAdminApp());
+  runApp(ShrinexAdminApp(env: env));
 }
 
 class ShrinexAdminApp extends StatelessWidget {
-  const ShrinexAdminApp({super.key});
+  final AppEnvironment env;
+
+  const ShrinexAdminApp({
+    super.key,
+    required this.env,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: shrinexAdminRouter,
+    return ChangeNotifierProvider.value(
+      value: env,
+      child: MaterialApp.router(
+        routerConfig: shrinexAdminRouter,
+      ),
     );
   }
 }
