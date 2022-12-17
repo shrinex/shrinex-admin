@@ -9,23 +9,25 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shrinex_admin/basics/app_environment.dart';
-import 'package:shrinex_admin/basics/deployment.dart';
+import 'package:shrinex_admin/basics/environment.dart';
+import 'package:shrinex_admin/basics/services.dart';
 import 'package:shrinex_admin/routes/routes.dart';
 import 'package:shrinex_core/shrinex_core.dart';
 
 void main() async {
+  // setup
   GoogleFonts.config.allowRuntimeFetching = false;
   final prefs = await SharedPreferences.getInstance();
-  final env = AppEnvironment.fromStorage(
-    apiService: Deployment.local,
+  final env = Environment.fromStorage(
+    apiService: Services.local,
     userDefaults: prefs.asKeyValueStore(),
   );
+  // run!
   runApp(ShrinexAdminApp(env: env));
 }
 
 class ShrinexAdminApp extends StatelessWidget {
-  final AppEnvironment env;
+  final Environment env;
 
   const ShrinexAdminApp({
     super.key,

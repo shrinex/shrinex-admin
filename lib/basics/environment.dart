@@ -5,30 +5,98 @@
  * Home: http://anyoptional.com
  */
 
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:shrinex_admin/api/models/User.dart';
+import 'package:shrinex_admin/basics/globals.dart';
 import 'package:shrinex_core/shrinex_core.dart';
 import 'package:shrinex_io/shrinex_io.dart';
 
-class Environment {
+class Environment extends ChangeNotifier {
+  static const _environmentStorageKey =
+      "com.anyoptional.app-environment.current";
+  static const _bearerTokenStorageKey =
+      "com.anyoptional.app-environment.bearer-token";
+  static const _currentUserStorageKey =
+      "com.anyoptional.app-environment.current-user";
+
   /// The currently logged in user.
-  final User? currentUser;
+  User? currentUser;
 
-  /// A type that exposes endpoints for fetching ShrineX data.
-  final Service apiService;
+  /// Restores the last saved environment from user defaults.
+  Environment.fromStorage({
+    required Service apiService,
+    required KeyValueStore userDefaults,
+  }) {
+    final env = json.decode(userDefaults.getString(
+          _environmentStorageKey,
+        ) ??
+        "{}") as Map<String, dynamic>;
 
-  /// The amount of time to debounce signals by. Default value is `0.3`.
-  final double debounceInterval;
+    // Try restoring the bearer token
+    final token = env[_bearerTokenStorageKey] as String?;
+    if (token != null && token.isNotEmpty) {
+      // Rebuild api service
+      apiService = apiService.login(BearerToken(token));
+      // Try restore the current user
+      final potentialUser =
+          env[_currentUserStorageKey] as Map<String, dynamic>?;
+      if (potentialUser != null) {
+        currentUser = User.fromJson(potentialUser);
+        notifyListeners();
+      }
+    }
 
-  /// A user defaults key-value store.
-  final KeyValueStore userDefaults;
+    // Init Globals
+    Globals.initialize(
+      apiService: apiService,
+      userDefaults: userDefaults,
+    );
 
-  /// Returns the current environment kind.
-  Kind get kind => apiService.serverOptions.kind;
+    // Save to disk
+    _synchronize(
+      currentUser: currentUser,
+      userDefaults: userDefaults,
+      bearerToken: apiService.bearerToken,
+    );
+  }
 
-  Environment({
-    this.currentUser,
-    required this.apiService,
-    required this.userDefaults,
-    this.debounceInterval = 0.3,
-  });
+  void update({required User currentUser}) {
+    this.currentUser = currentUser;
+    notifyListeners();
+  }
+
+  /// Invoke when an access token has been acquired and you want to log the user in
+  void login() {
+    // TODO
+  }
+
+  /// Invoke when you want to end the user's session
+  void logout() {
+    currentUser = null;
+    _clearOut(
+      userDefaults: Globals.userDefaults,
+    );
+    Globals.replace(
+      apiService: Globals.apiService.logout(),
+    );
+    notifyListeners();
+  }
+
+  /// Saves some key data for the current environment
+  static void _synchronize(
+      {User? currentUser,
+      BearerToken? bearerToken,
+      required KeyValueStore userDefaults}) {
+    final data = <String, dynamic>{};
+    data[_currentUserStorageKey] = currentUser?.toJson();
+    data[_bearerTokenStorageKey] = bearerToken?.rawValue;
+    userDefaults.setString(_environmentStorageKey, json.encode(data));
+  }
+
+  /// Clears all key data for the current environment
+  static void _clearOut({required KeyValueStore userDefaults}) {
+    userDefaults.remove(_environmentStorageKey);
+  }
 }

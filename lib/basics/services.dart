@@ -7,21 +7,23 @@
 
 import 'package:shrinex_io/shrinex_io.dart';
 
-/// Predefined deploy targets
-abstract class Deployment {
+/// Predefined [Service]s
+abstract class Services {
   /// A production grade [Service]
   static final prod = Service.using(
-    serverOptions: ServerOptions(
-      Kind.prod,
-      'http://api.anyoptional.com',
+    restClient: DioRestClient.using(
+      restOptions: RestOptions(
+        baseUrl: 'http://api.anyoptional.com',
+      ),
     ),
   );
 
   /// A [Service] that is used in local environment
   static final local = Service.using(
-    serverOptions: ServerOptions(
-      Kind.local,
-      'http://localhost:8088',
+    restClient: DioRestClient.using(
+      restOptions: RestOptions(
+        baseUrl: 'http://localhost:8088',
+      ),
     ),
   );
 }
