@@ -10,15 +10,13 @@ import 'package:shrinex_io/shrinex_io.dart';
 
 /// [Globals] captures the global objects that the app wants access to
 abstract class Globals {
-  static late Service _apiService;
-
   /// A type that exposes endpoints for fetching ShrineX data
   static Service get apiService => _apiService;
-
-  static late KeyValueStore _userDefaults;
+  static late Service _apiService;
 
   /// A user defaults key-value store
   static KeyValueStore get userDefaults => _userDefaults;
+  static late KeyValueStore _userDefaults;
 
   /// The amount of time to debounce signals by. Default value is `0.3`
   static const double debounceInterval = 0.3;

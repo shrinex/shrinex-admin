@@ -14,15 +14,19 @@ import 'package:shrinex_core/shrinex_core.dart';
 import 'package:shrinex_io/shrinex_io.dart';
 
 class Environment extends ChangeNotifier {
-  static const _environmentStorageKey =
-      "com.anyoptional.app-environment.current";
-  static const _bearerTokenStorageKey =
-      "com.anyoptional.app-environment.bearer-token";
-  static const _currentUserStorageKey =
-      "com.anyoptional.app-environment.current-user";
+  @visibleForTesting
+  static const environmentStorageKey =
+      "com.anyoptional.environment.current-env";
+  @visibleForTesting
+  static const bearerTokenStorageKey =
+      "com.anyoptional.environment.bearer-token";
+  @visibleForTesting
+  static const currentUserStorageKey =
+      "com.anyoptional.environment.current-user";
 
   /// The currently logged in user.
-  User? currentUser;
+  User? get currentUser => _currentUser;
+  User? _currentUser;
 
   /// Restores the last saved environment from user defaults.
   Environment.fromStorage({
@@ -30,20 +34,19 @@ class Environment extends ChangeNotifier {
     required KeyValueStore userDefaults,
   }) {
     final env = json.decode(userDefaults.getString(
-          _environmentStorageKey,
+          environmentStorageKey,
         ) ??
         "{}") as Map<String, dynamic>;
 
     // Try restoring the bearer token
-    final token = env[_bearerTokenStorageKey] as String?;
+    final token = env[bearerTokenStorageKey] as String?;
     if (token != null && token.isNotEmpty) {
       // Rebuild api service
       apiService = apiService.login(BearerToken(token));
       // Try restore the current user
-      final potentialUser =
-          env[_currentUserStorageKey] as Map<String, dynamic>?;
+      final potentialUser = env[currentUserStorageKey] as Map<String, dynamic>?;
       if (potentialUser != null) {
-        currentUser = User.fromJson(potentialUser);
+        _currentUser = User.fromJson(potentialUser);
         notifyListeners();
       }
     }
@@ -53,17 +56,13 @@ class Environment extends ChangeNotifier {
       apiService: apiService,
       userDefaults: userDefaults,
     );
-
-    // Save to disk
-    _synchronize(
-      currentUser: currentUser,
-      userDefaults: userDefaults,
-      bearerToken: apiService.bearerToken,
-    );
   }
 
+  /// Whether a user has logged in.
+  bool get loggedIn => _currentUser != null;
+
   void update({required User currentUser}) {
-    this.currentUser = currentUser;
+    _currentUser = currentUser;
     notifyListeners();
   }
 
@@ -74,7 +73,7 @@ class Environment extends ChangeNotifier {
 
   /// Invoke when you want to end the user's session
   void logout() {
-    currentUser = null;
+    _currentUser = null;
     _clearOut(
       userDefaults: Globals.userDefaults,
     );
@@ -90,13 +89,13 @@ class Environment extends ChangeNotifier {
       BearerToken? bearerToken,
       required KeyValueStore userDefaults}) {
     final data = <String, dynamic>{};
-    data[_currentUserStorageKey] = currentUser?.toJson();
-    data[_bearerTokenStorageKey] = bearerToken?.rawValue;
-    userDefaults.setString(_environmentStorageKey, json.encode(data));
+    data[currentUserStorageKey] = currentUser?.toJson();
+    data[bearerTokenStorageKey] = bearerToken?.rawValue;
+    userDefaults.setString(environmentStorageKey, json.encode(data));
   }
 
   /// Clears all key data for the current environment
   static void _clearOut({required KeyValueStore userDefaults}) {
-    userDefaults.remove(_environmentStorageKey);
+    userDefaults.remove(environmentStorageKey);
   }
 }

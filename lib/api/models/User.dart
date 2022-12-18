@@ -5,11 +5,26 @@
  * Home: http://anyoptional.com
  */
 
+import 'package:shrinex_io/shrinex_io.dart';
+
 /// TBD
 class User {
-  const User();
+  late String nickname;
 
-  factory User.fromJson(Map<String, dynamic> json) => const User();
+  late String avatar;
 
-  Map<String, dynamic> toJson() => {};
+  User();
+
+  factory User.fromJson(Map<String, dynamic> raw) {
+    final json = JSON.from(raw);
+    final result = User();
+    result.avatar = json["avatar"].stringValue;
+    result.nickname = json["nickname"].stringValue;
+    return result;
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        "avatar": avatar,
+        "nickname": nickname,
+      };
 }
